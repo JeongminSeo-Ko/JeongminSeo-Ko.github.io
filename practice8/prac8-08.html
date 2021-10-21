@@ -11,8 +11,9 @@
       let i = 2;
       function transform() {
         let name = document.getElementById("sp");
-        sp.style.transform = "scaleX(" + i + ")";
+        sp.style.transform = "scale(" + i + ", 1)";
         i++;
+        if (i > 4) i = 1;
       }
     </script>
     <h3>클릭하면 2,3,4 배 옆으로 늘어납니다.</h3>
