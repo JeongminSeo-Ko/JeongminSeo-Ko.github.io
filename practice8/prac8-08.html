@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>transform</title>
+  </head>
+  <body>
+    <script>
+      let i = 2;
+      function transform() {
+        let name = document.getElementById("sp");
+        sp.style.transform = "scaleX(" + i + ")";
+        i++;
+      }
+    </script>
+    <h3>클릭하면 2,3,4 배 옆으로 늘어납니다.</h3>
+    <hr />
+    <img
+      id="sp"
+      onclick="transform()"
+      src="media/spongebob.png"
+      width="200px"
+      alt="스폰지밥"
+    />
+  </body>
+</html>
