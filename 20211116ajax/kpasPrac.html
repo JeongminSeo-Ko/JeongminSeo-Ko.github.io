@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+        table,th,td {
+          border : 1px solid black;
+          border-collapse: collapse;
+        }
+        th,td {
+          padding: 5px;
+        }
+    </style>
+  </head>
+  <body>
+    <script>
+      /* Javascript 샘플 코드 */
+
+      function loadDoc() {
+
+        var url =
+        "http://apis.data.go.kr/1741000/DisasterMsg3/getDisasterMsg1List"; /*URL*/
+
+        var queryParams =
+            "?" +
+            encodeURIComponent("serviceKey") +
+            "=" +
+            "TBzJLMCgF50KAwTpZ5vpHHWdkzgTOHTojD0gMZfVngqFfcx4MjZwgPjaiCM%2FchJuqKP4iMjqkLBRGnX66AMCgw%3D%3D"; /*Service Key*/
+        queryParams +=
+            "&" + encodeURIComponent("pageNo") + "=" + encodeURIComponent("1"); /**/
+        queryParams +=
+            "&" +
+            encodeURIComponent("numOfRows") +
+            "=" +
+            encodeURIComponent("10"); /**/
+        queryParams +=
+            "&" + encodeURIComponent("type") + "=" + encodeURIComponent("xml"); /**/
+        
+        var xhttp = new XMLHttpRequest(); // XMLHttpRequest 객체 생성
+        xhttp.onreadystatechange = function() { // 프로퍼티 생성(함수)
+          if (this.readyState == 4 && this.status == 200) {
+           myFunction(this);
+          }
+        };
+        xhttp.open("GET", url + queryParams);
+        xhttp.send(); // xhttp 객체의 메소드 호출
+      }
+
+      function myFunction(xml) {
+        var i;
+        var xmlDoc = xml.responseXML;
+        var table="<tr><th>수신 지역</th><th>내용</th></tr>";
+        var x = xmlDoc.getElementsByTagName("row");
+        for (i = 0; i <x.length; i++) { 
+          table += "<tr><td>" +
+          x[i].getElementsByTagName("location_name")[0].childNodes[0].nodeValue +
+          "</td><td>" +
+          x[i].getElementsByTagName("msg")[0].childNodes[0].nodeValue +
+          "</td></tr>";
+        }
+        document.getElementById("tb_dis_msg").innerHTML = table;
+      }
+
+    </script>
+
+    <div id="demo">
+      <h2>재난 문자</h2>
+      <button type="button" onclick="loadDoc()">보기</button>
+    </div>
+    <br>
+    <table id="tb_dis_msg"></table>
+    
+  </body>
+</html>
