@@ -32,6 +32,7 @@
         
         var HOME_PATH = "https://navermaps.github.io/maps.js.ncp/docs";
         
+        // 지도 로드 후 일회성으로 실행하는 이벤트로, json 파일을 받아오고 성공 시 startDataLayer 함수를 실행한다.
         naver.maps.Event.once(map, 'init_stylemap', function () {
             $.ajax({
                 url: HOME_PATH +'/data/naver.json',
@@ -44,12 +45,15 @@
             map.data.addGeoJson(geojson);
         
             map.data.setStyle(function(feature) {
+                // 기본 색상: 빨강
                 var color = 'red';
-        
+                
+                // 'isColorful' 프로퍼티가 설정(ture)되면 'color'프로퍼티의 정보를 가져와 색상을 변경한다. 
                 if (feature.getProperty('isColorful')) {
                     color = feature.getProperty('color');
                 }
-        
+
+                // 글자 내부 및 테두리 색상을 받아온 색상으로 변경한다.
                 return {
                     fillColor: color,
                     strokeColor: color,
@@ -57,11 +61,13 @@
                     icon: null
                 };
             });
-        
+
+            // 마우스 클릭 시 'isColorful' 프로퍼티의 값을 'true'로 설정한다.
             map.data.addListener('click', function(e) {
                 e.feature.setProperty('isColorful', true);
             });
-        
+            
+            // 더블 클릭 시 좌표 경계 값을 받고, 해당 좌표 경계의 위치로 지도를 이동한다.
             map.data.addListener('dblclick', function(e) {
                 var bounds = e.feature.getBounds();
         
@@ -69,14 +75,16 @@
                     map.panToBounds(bounds);
                 }
             });
-        
+            
+            // icon에 마우스를 가져가면 해당 icon의 이미지를 변경한다. 
             map.data.addListener('mouseover', function(e) {
                 map.data.overrideStyle(e.feature, {
                     strokeWeight: 8,
                     icon: HOME_PATH +'/img/example/pin_spot.png'
                 });
             });
-        
+
+            // 마우스를 치우면 스타일을 원상태로 복귀시킨다.
             map.data.addListener('mouseout', function(e) {
                 map.data.revertStyle();
             });
