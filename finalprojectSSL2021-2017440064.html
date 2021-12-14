@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>코로나 현황 | 긴급재난문자</title>
+
+    <style>
+      h1,
+      p {
+        color: #282828;
+        text-align: center;
+      }
+
+      table,
+      button {
+        width: 80%;
+        margin-left: 10%;
+        margin-right: 10%;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid black;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        paadding: 5px;
+      }
+
+      button {
+        color: #ebf5ff;
+        background-color: #0064ff;
+        border: 1px solid #0064ff;
+        font-size: 15px;
+        padding: 8px;
+        border-radius: 5px;
+      }
+    </style>
+
+    <!-- Naver Map API -->
+    <script
+      type="text/javascript"
+      src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=hevdjc9qgc"
+    ></script>
+  </head>
+
+  <body>
+    <h1>코로나 현황 | 긴급재난문자</h1>
+    <br />
+    <p>
+      아래 <strong>버튼</strong>을 클릭하여
+      <strong>코로나19 감염 현황</strong>을 확인할 수 있습니다.
+    </p>
+    <p>
+      지도 위 <strong>마커</strong>를 클릭하여 해당 지역의
+      <strong>긴급재난문자</strong>를 확인할 수 있습니다.
+    </p>
+
+    <br />
+
+    <button type="button" onclick="buildTable1()">
+      코로나19 감염 현황 보기
+    </button>
+    <br />
+    <br />
+    <table id="covid"></table>
+    <br />
+
+    <div id="map" style="width: 99%; height: 600px"></div>
+    <br />
+
+    <table id="message"></table>
+
+    <!-- 공공데이터포털: 코로나19 감염 현황 -->
+    <script>
+      function buildTable1() {
+        var xhr = new XMLHttpRequest();
+        var url =
+          "http://openapi.data.go.kr/openapi/service/rest/Covid19/getCovid19SidoInfStateJson"; /*URL*/
+        var queryParams =
+          "?" +
+          encodeURIComponent("serviceKey") +
+          "=" +
+          "TBzJLMCgF50KAwTpZ5vpHHWdkzgTOHTojD0gMZfVngqFfcx4MjZwgPjaiCM%2FchJuqKP4iMjqkLBRGnX66AMCgw%3D%3D"; /*Service Key*/
+        queryParams +=
+          "&" +
+          encodeURIComponent("pageNo") +
+          "=" +
+          encodeURIComponent("1"); /**/
+        queryParams +=
+          "&" +
+          encodeURIComponent("numOfRows") +
+          "=" +
+          encodeURIComponent("18"); /**/
+        queryParams +=
+          "&" +
+          encodeURIComponent("startCreateDt") +
+          "=" +
+          encodeURIComponent("20211212"); /**/
+        queryParams +=
+          "&" +
+          encodeURIComponent("endCreateDt") +
+          "=" +
+          encodeURIComponent("20211231"); /**/
+        xhr.open("GET", url + queryParams);
+        xhr.onreadystatechange = function () {
+          if (this.readyState == 4 && this.status == 200) {
+            myFunction(this);
+          }
+        };
+        xhr.send("");
+      }
+
+      function myFunction(xml) {
+        var incDec = 0; // 신규 확진자
+        var defCnt = 0; // 누적 확진자
+        var isolClearCnt = 0; // 격리 해제자
+        var deathCnt = 0; // 누적 사망자
+
+        var xmlDoc = xml.responseXML;
+        var x = xmlDoc.getElementsByTagName("item");
+
+        for (i = 0; i < 18; i++) {
+          incDec += parseInt(
+            x[i].getElementsByTagName("incDec")[0].childNodes[0].nodeValue
+          );
+          defCnt += parseInt(
+            x[i].getElementsByTagName("defCnt")[0].childNodes[0].nodeValue
+          );
+          isolClearCnt += parseInt(
+            x[i].getElementsByTagName("isolClearCnt")[0].childNodes[0].nodeValue
+          );
+          deathCnt += parseInt(
+            x[i].getElementsByTagName("deathCnt")[0].childNodes[0].nodeValue
+          );
+        }
+
+        var table =
+          "<thead><tr><th>신규확진자</th><th>누적확진자</th><th>격리해제</th><th>누적사망자</th></tr></thead>";
+        table +=
+          "<tr><th>" +
+          incDec +
+          "</th><th>" +
+          defCnt +
+          "</th><th>" +
+          isolClearCnt +
+          "</th><th>" +
+          deathCnt +
+          "</th></tr>";
+
+        document.getElementById("covid").innerHTML = table;
+      }
+    </script>
+
+    <!-- 공공데이터포털: 긴급재난문자-->
+    <script>
+      function buildTable2(location) {
+        var url =
+          "http://apis.data.go.kr/1741000/DisasterMsg4/getDisasterMsg2List"; /*URL*/
+        var queryParams =
+          "?" +
+          encodeURIComponent("serviceKey") +
+          "=" +
+          "TBzJLMCgF50KAwTpZ5vpHHWdkzgTOHTojD0gMZfVngqFfcx4MjZwgPjaiCM%2FchJuqKP4iMjqkLBRGnX66AMCgw%3D%3D"; /*Service Key*/
+        queryParams +=
+          "&" +
+          encodeURIComponent("pageNo") +
+          "=" +
+          encodeURIComponent("1"); /**/
+        queryParams +=
+          "&" +
+          encodeURIComponent("numOfRows") +
+          "=" +
+          encodeURIComponent("5"); /**/
+        queryParams +=
+          "&" +
+          encodeURIComponent("type") +
+          "=" +
+          encodeURIComponent("xml"); /**/
+        queryParams +=
+          "&" +
+          encodeURIComponent("create_date") +
+          "=" +
+          encodeURIComponent("2021/06/22 00:00:00"); /**/
+        queryParams +=
+          "&" +
+          encodeURIComponent("location_name") +
+          "=" +
+          encodeURIComponent(location); /**/
+
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+          if (this.readyState == 4 && this.status == 200) {
+            myFunction2(this);
+          }
+        };
+        xhttp.open("GET", url + queryParams);
+        xhttp.send();
+      }
+
+      function myFunction2(xml) {
+        var i;
+        var xmlDoc2 = xml.responseXML;
+        var table2 = "<tr><th>일시</th><th>지역</th><th>내용</th></tr>";
+        var x = xmlDoc2.getElementsByTagName("row");
+        for (i = 0; i < x.length; i++) {
+          table2 +=
+            "<tr><td>" +
+            x[i].getElementsByTagName("create_date")[0].childNodes[0]
+              .nodeValue +
+            "</td><td>" +
+            x[i].getElementsByTagName("location_name")[0].childNodes[0]
+              .nodeValue +
+            "</td><td>" +
+            x[i].getElementsByTagName("msg")[0].childNodes[0].nodeValue +
+            "</td></tr>";
+        }
+        document.getElementById("message").innerHTML = table2;
+      }
+    </script>
+
+    <!-- Naver Map-->
+    <script>
+      // 지도 생성
+      var map = new naver.maps.Map(document.getElementById("map"), {
+        center: new naver.maps.LatLng(37.566293, 126.977944),
+        zoom: 7,
+        zoomControl: true,
+        mapTypeId: "normal",
+      });
+
+      // 서울특별시
+      // 마커 생성
+      var marker1 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(37.566293, 126.977944),
+        map: map,
+        title: "서울특별시",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker1, "click", function () {
+        // 애니메이션 적용
+        if (marker1.getAnimation() !== null) {
+          marker1.setAnimation(null);
+        } else {
+          marker1.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker1.title);
+      });
+
+      // 강원도
+      // 마커 생성
+      var marker2 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(37.885395, 127.729776),
+        map: map,
+        title: "강원도",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker2, "click", function () {
+        // 애니메이션 적용
+        if (marker2.getAnimation() !== null) {
+          marker2.setAnimation(null);
+        } else {
+          marker2.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker2.title);
+      });
+
+      // 경기도
+      // 마커 생성
+      var marker3 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(37.274904, 127.00919),
+        map: map,
+        title: "경기도",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker3, "click", function () {
+        // 애니메이션 적용
+        if (marker3.getAnimation() !== null) {
+          marker3.setAnimation(null);
+        } else {
+          marker3.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker3.title);
+      });
+
+      // 경상남도
+      // 마커 생성
+      var marker4 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(35.238288, 128.692398),
+        map: map,
+        title: "경상남도",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker4, "click", function () {
+        // 애니메이션 적용
+        if (marker4.getAnimation() !== null) {
+          marker4.setAnimation(null);
+        } else {
+          marker4.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker4.title);
+      });
+
+      // 경상북도
+      // 마커 생성
+      var marker5 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(36.576018, 128.505595),
+        map: map,
+        title: "경상북도",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker5, "click", function () {
+        // 애니메이션 적용
+        if (marker5.getAnimation() !== null) {
+          marker5.setAnimation(null);
+        } else {
+          marker5.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker5.title);
+      });
+
+      // 광주광역시
+      // 마커 생성
+      var marker6 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(35.159606, 126.852349),
+        map: map,
+        title: "광주광역시",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker6, "click", function () {
+        // 애니메이션 적용
+        if (marker6.getAnimation() !== null) {
+          marker6.setAnimation(null);
+        } else {
+          marker6.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker6.title);
+      });
+
+      // 대구광역시
+      // 마커 생성
+      var marker7 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(35.871539, 128.601505),
+        map: map,
+        title: "대구광역시",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker7, "click", function () {
+        // 애니메이션 적용
+        if (marker7.getAnimation() !== null) {
+          marker7.setAnimation(null);
+        } else {
+          marker7.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker7.title);
+      });
+
+      // 대전광역시
+      // 마커 생성
+      var marker8 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(36.350454, 127.384819),
+        map: map,
+        title: "대전광역시",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker8, "click", function () {
+        // 애니메이션 적용
+        if (marker8.getAnimation() !== null) {
+          marker8.setAnimation(null);
+        } else {
+          marker8.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker8.title);
+      });
+
+      // 부산광역시
+      // 마커 생성
+      var marker9 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(35.179789, 129.074987),
+        map: map,
+        title: "부산광역시",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker9, "click", function () {
+        // 애니메이션 적용
+        if (marker9.getAnimation() !== null) {
+          marker9.setAnimation(null);
+        } else {
+          marker9.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker9.title);
+      });
+
+      // 울산광역시
+      // 마커 생성
+      var marker10 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(35.539619, 129.311527),
+        map: map,
+        title: "울산광역시",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker10, "click", function () {
+        // 애니메이션 적용
+        if (marker10.getAnimation() !== null) {
+          marker10.setAnimation(null);
+        } else {
+          marker10.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker10.title);
+      });
+
+      // 인천광역시
+      // 마커 생성
+      var marker11 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(37.455993, 126.705255),
+        map: map,
+        title: "인천광역시",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker11, "click", function () {
+        // 애니메이션 적용
+        if (marker11.getAnimation() !== null) {
+          marker11.setAnimation(null);
+        } else {
+          marker11.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker11.title);
+      });
+
+      // 전라남도
+      // 마커 생성
+      var marker12 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(34.816216, 126.462924),
+        map: map,
+        title: "전라남도",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker12, "click", function () {
+        // 애니메이션 적용
+        if (marker12.getAnimation() !== null) {
+          marker12.setAnimation(null);
+        } else {
+          marker12.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker12.title);
+      });
+
+      // 전라북도
+      // 마커 생성
+      var marker13 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(35.820356, 127.108726),
+        map: map,
+        title: "전라북도",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker13, "click", function () {
+        // 애니메이션 적용
+        if (marker13.getAnimation() !== null) {
+          marker13.setAnimation(null);
+        } else {
+          marker13.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker13.title);
+      });
+
+      // 제주특별자치도
+      // 마커 생성
+      var marker14 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(33.48883, 126.498079),
+        map: map,
+        title: "제주특별자치도",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker14, "click", function () {
+        // 애니메이션 적용
+        if (marker14.getAnimation() !== null) {
+          marker14.setAnimation(null);
+        } else {
+          marker14.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker14.title);
+      });
+
+      // 충청남도
+      // 마커 생성
+      var marker15 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(36.659995, 126.67228),
+        map: map,
+        title: "충청남도",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker15, "click", function () {
+        // 애니메이션 적용
+        if (marker15.getAnimation() !== null) {
+          marker15.setAnimation(null);
+        } else {
+          marker15.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker15.title);
+      });
+
+      // 충청북도
+      // 마커 생성
+      var marker16 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(36.635806, 127.491334),
+        map: map,
+        title: "충청북도",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker16, "click", function () {
+        // 애니메이션 적용
+        if (marker16.getAnimation() !== null) {
+          marker16.setAnimation(null);
+        } else {
+          marker16.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker16.title);
+      });
+
+      // 세종특별자치시
+      // 마커 생성
+      var marker17 = new naver.maps.Marker({
+        position: new naver.maps.LatLng(36.48013, 127.288763),
+        map: map,
+        title: "세종특별자치시",
+      });
+      // 마커 클릭: 애니메이션 적용, 긴급재난문자 테이블 생성
+      naver.maps.Event.addListener(marker17, "click", function () {
+        // 애니메이션 적용
+        if (marker17.getAnimation() !== null) {
+          marker17.setAnimation(null);
+        } else {
+          marker17.setAnimation(naver.maps.Animation.BOUNCE);
+        }
+        // 긴급재난문자 테이블 생성
+        buildTable2(marker17.title);
+      });
+    </script>
+  </body>
+</html>
